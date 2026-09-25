@@ -898,7 +898,9 @@ func (g *Generator) buildNixContainer(service types.ServiceConfig, networkMap ma
 	// via systemd labels below.
 	// https://docs.docker.com/reference/compose-file/services/#stop_grace_period
 	if service.StopGracePeriod != nil {
-		c.SystemdConfig.Service.Set("TimeoutStopSec", int(time.Duration(*service.StopGracePeriod).Seconds()))
+		periodSeconds := int64(time.Duration(*service.StopGracePeriod).Seconds())
+		c.SystemdConfig.Service.Set("TimeoutStopSec", periodSeconds+5)
+		c.ExtraOptions = append(c.ExtraOptions, fmt.Sprintf("--stop-timeout=%d", periodSeconds))
 	}
 
 	// Sort slices now that we're done processing the container.
